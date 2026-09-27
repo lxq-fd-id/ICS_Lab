@@ -89,8 +89,6 @@ git status 显示 Unmerged paths，即 both modified: main.c。打开 main.c 可
 
 2. 第一次合并未出现冲突，原因是分支尚未分叉而执行了快进合并。按照文档提示继续在两侧提交制造分叉后，成功触发并解决了冲突，这一过程也加深了对"冲突只发生在分支分叉之后"的理解。
 
-3. 最初不了解如何从 Windows 访问 WSL 中的文件，后来通过 \\wsl$\Ubuntu\home\longxq\ICS_Lab 路径或直接在 VSCode 中打开 WSL 目录解决。
-
 总结
 
 本次实验完整实践了环境配置、SSH 认证、基于模板创建仓库、克隆、修改提交、分支管理、合并冲突解决以及报告提交的完整流程，重点理解了暂存区在提交过程中的作用，并通过实际操作掌握了冲突的产生条件与解决方法。建议实验文档补充 apt 软件源切换的说明，并给出 git switch 与 git checkout、git restore 与 git checkout 等新旧命令的对应关系，以帮助习惯旧命令的同学平滑过渡。
