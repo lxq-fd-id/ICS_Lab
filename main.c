@@ -2,6 +2,7 @@
 
 int main()
 {
-    // @TODO: print a sentence you want.
-    printf("Hello, world!\n");
+    // print a sentence you want
+    printf("Hello, world! This is lobster's Lab0 submission.\n");
+    return 0;
 }
