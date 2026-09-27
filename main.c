@@ -3,6 +3,6 @@
 int main()
 {
     // print a sentence you want
-    printf("Hello from feature branch! This is Lab0 conflict practice.\n");
+    printf("Hello from the feature branch again! Feature keeps its sentence.\n");
     return 0;
 }
