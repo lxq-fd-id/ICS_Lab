@@ -1,88 +1,94 @@
-# Lab0: GitLab 实验报告
+Lab0: GitLab 实验报告
 
-- 姓名：______
-- 学号：______
-- 日期：2026-09-27
-- 仓库地址：https://github.com/lxq-fd-id/ICS_Lab
+姓名：龙雪琪　　学号：25303020009　　日期：2026-09-27
 
-## 一、文档问题回答（任务 1，15 分）
+仓库地址：https://github.com/lxq-fd-id/ICS_Lab
 
-### 1. 你之前有过多人协同开发的经历吗？如果有，你们是使用什么方式分工协作的？
+**一、几个问题的思考**
 
-（示例一，如之前有过协作经历）有过。在上学期的项目中，我们使用 GitHub 协作，采用"主干分支 + 功能分支"的方式分工：每人从 main 切出自己的 feature 分支负责一个模块，开发自测完成后发起 Pull Request，由另一位同学 review 通过后合并回主干；遇到同时修改同一文件的冲突时，由后合并的一方负责解决。
+**关于多人协作的经历**
 
-（示例二，如之前没有协作经历）之前没有正式的多人协同开发经历。通过本次实验我第一次完整经历了"两个分支修改同一文件的同一行 → 合并产生冲突 → 手动解决"的过程，直观理解了版本控制对多人协作的意义：它把"冲突"从人肉逐行对比复制，变成了机器可检测、可定位、可修复的显式事件。
+说实话，我以前没有过正式的多人协同开发经历。之前自己写小程序，都是"改一版就整个文件夹复制一份"的笨办法，目录里堆满了 `xxx_v2`、`xxx_final`、`xxx_final2`，过两天连自己都分不清哪个是最新的。这次实验第一次让我完整走了一遍"两个分支各改一处 → 合并报冲突 → 手动解决"的过程，我才真正理解版本控制对协作意味着什么：它不会替你消除分歧，但能把分歧明明白白地摆出来，让你安全地处理它——这比两个人各改各的、最后默默覆盖掉对方的代码要可靠太多了。
 
-### 2. 思考一下，Git 为什么要设计"暂存-提交"两个步骤？
+**为什么要有"暂存-提交"两步？**
 
-Git 把文件状态分为工作区、暂存区（Index）和仓库三层，暂存区是工作区与仓库之间的"缓冲地带"，这个设计有几点价值：
+我一开始也觉得多此一举，自己写东西直接提交不就行了。做完实验回头想，这个设计其实很巧妙：Git 把文件分成了工作区、暂存区和仓库三层，暂存区像是仓库门口的一个"缓冲区"。
 
-1. **挑选与组装**：一次提交可以只包含你想提交的改动。开发中往往同时改了多个文件、甚至一个文件里包含多种性质的修改（如一个 bug 修复、一个新功能），通过 `git add` 可以把相关改动精确归入同一次提交，保证每次提交"原子"且主题单一，便于日后回溯和检索。
-2. **提交前检查**：暂存后、提交前，可以用 `git status` / `git diff --cached` 检查即将入库的内容，避免误提交临时文件等无关内容。
-3. **降低切换成本**：暂存区与工作区分离，改动到一半时可以只暂存一部分、丢弃另一部分，或安全地切换分支而不丢失半成品状态。
-4. **语义对应**：提交是仓库历史的一个节点，一旦提交不应轻易改变；暂存让提交者在"决定记录什么"之前有充分的斟酌空间。
+它解决的最核心的问题，是把"我正在改什么"和"我决定记录什么"分开。实际写代码时经常是改了很多地方、想改的东西五花八门，如果没有暂存区，要么一次提交把无关的改动全混进去，历史变得没法看；要么只能小心翼翼地逐文件提交。有了 `git add`，就能把一次提交精确地组装成"只做一件事"的节点，提交前还能用 `git status`、`git diff --cached` 检查一下要入库的内容。另外暂存区也让切换分支变得安全——改到一半的东西可以先放着，不用担心半成品丢或者被别的操作冲掉。
 
-### 3. `git branch` 和 `git branch -a` 的区别是什么？
+**git branch 和 git branch -a 的区别**
 
-`git branch` 只列出**本地分支**；`git branch -a`（等价于 `git branch --all`）除了本地分支，还会列出**远程跟踪分支**（形如 `remotes/origin/main`），即本地记录的远程仓库上存在的分支。克隆仓库后本地与远程分支同名显示（如 `main`），用 `git branch` 看不出远程还有哪些分支，用 `-a` 才能看到"本地 + 远程"的完整分支全景。
+`git branch` 只列本地分支；`git branch -a`（`--all`）会额外列出远程跟踪分支，也就是形如 `remotes/origin/main` 的那些。远程跟踪分支可以理解为"本地记录的、远程仓库上次同步时的状态"，clone 或 fetch 的时候才会更新。
 
-## 二、实验步骤（任务 2 & 任务 4）
+这次实验里有个很直观的例子：我执行 `git branch -a`，看到本地有 `main` 和 `feature`，而 `remotes/origin/main` 还停在最早的 `Initial commit`——因为我本地已经提交了 7 次但还没推。如果没有 `-a`，我就完全看不出远程仓库和自己差了多少。
 
-### 2.1 环境与配置
-- 使用 WSL（Ubuntu）作为实验环境，`git --version` 确认已安装（git version 2.53.0）。
-- 配置全局身份：`git config --global user.name "lobster"`、`git config --global user.email "19175078132@163.com"`、`git config --global init.defaultBranch main`。
-- 生成 SSH 密钥 `ssh-keygen -t ed25519`，公钥添加到 GitHub（Settings → SSH and GPG keys），验证 `ssh -T git@github.com` 输出 `Hi lxq-fd-id! You've successfully authenticated`。
+**二、实验过程记录**
 
-### 2.2 建立个人仓库并完成任务 2
-- 在模板仓库页面点击 Use this template → Create a new repository，仓库名 `ICS_Lab`。
-- 克隆：`git clone git@github.com:lxq-fd-id/ICS_Lab.git`。
-- 修改 `main.c`：完成 TODO，将打印内容改为自定义句子，并补上 `return 0;`。
-- 提交：`git add main.c && git commit -m "feat: complete the TODO in main.c"`。
+**环境与配置**
 
-### 2.3 分支管理与合并冲突（任务 4）
-1. 在 main 分支把 `printf` 句子改为句子 A 并提交；
-2. `git switch -c feature` 创建并切换到 feature 分支，把同一行 `printf` 改为句子 B 并提交；
-3. 切回 main 后 `git merge feature`，第一次为 Fast-forward 合并（无冲突）——因为 feature 仅领先于 main，分支尚未真正分叉；
-4. 继续提交使两个分支真正分叉：main 上改为句子 C、feature 上改为句子 D；
-5. `git merge feature` 触发冲突：`CONFLICT (content): Merge conflict in main.c`，`git status` 显示 `Unmerged paths / both modified: main.c`。
+实验文档说本学期大部分实验都在 Linux 上做，所以我选择了 WSL（Ubuntu）而不是直接在 Windows 上操作。环境就绪后配置了 Git 身份（`user.name` 用了 lobster，邮箱和 GitHub 注册邮箱一致，这样提交才能关联到我的账户），生成了 ed25519 密钥并添加到 GitHub，用 `ssh -T git@github.com` 验证通过——选 SSH 是为了以后推送不用反复输密码。
 
-   截图 1（遇到冲突）：
-   ![遇到冲突](screenshots/conflict.png)
+**建仓库、改 main.c**
 
-6. 手动编辑 `main.c`，删除 `<<<<<<< HEAD`、`=======`、`>>>>>>> feature` 三行冲突标记，保留 main 分支的句子，然后 `git add main.c && git commit -m "merge feature into main and resolve conflict"`。
+在模板仓库页面点 Use this template 建了自己的 `ICS_Lab` 仓库，`git clone` 到本地。模板里的 `main.c` 有一个 `// @TODO`，我把它改成打印自己的句子，顺手补了 `return 0;`：
 
-   截图 2（解决冲突后）：
-   ![解决冲突](screenshots/resolved.png)
+```c
+#include <stdio.h>
 
-7. 最终提交树（`git log --graph --oneline`）清晰可见合并节点：
-
-```
-*   020d588 merge feature into main and resolve conflict
-|\
-| * 858d0dc feature: change print sentence to D
-* | 211770b main: change print sentence to C
-|/
-* a27dc29 feature: change print sentence to B
-* 2376ee7 main: change print sentence to A
-* fafcab9 feat: complete the TODO in main.c
-* 0e56db8 Initial commit
+int main()
+{
+    // print a sentence you want
+    printf("Hello, world! This is lobster's Lab0 submission.\n");
+    return 0;
+}
 ```
 
-## 三、阅读与思考（任务 3，15 分）
+用 `make` 编译运行正常（也第一次搞明白了 Makefile 在干什么），`make clean` 清理编译产物，然后 `git add main.c && git commit`。提交信息我特意按 `feat: xxx` 的规范写的，这个习惯是任务 3 读那篇文章时学到的。
 
-### 1. 《Commit Message 规范》（阮一峰）摘要
+**分支与冲突（最有意思的部分）**
 
-文章介绍了以 Angular 规范为代表的 Commit Message 写法：格式为 `<type>(<scope>): <subject>`，type 常用 `feat`（新功能）、`fix`（修复 bug）、`docs`（文档）、`style`、`refactor`（重构）、`perf`（性能）、`test`（测试）、`chore`（杂项）等。规范化的好处有三点：① 提供更多历史信息，如 `git log --pretty=format:%s` 一眼可看出每次提交目的；② 可过滤查找（如 `git log --grep feat`）；③ 可以直接从提交记录自动生成 Change log，便于发布时说明与上一版本的差异。
+这一步按文档要求走了完整流程：在 main 上把打印句子改成句子 A 提交，然后 `git switch -c feature` 切到新分支，把**同一行**改成句子 B 提交，再切回 main 执行 `git merge feature`。
 
-### 2. 《Git Flow 分支控制》摘要
+第一次合并居然没冲突，只是 Fast-forward——因为 feature 只是领先于 main，两个分支根本没分叉，git 直接把 main 指针推到了 feature 的位置。文档说这种情况不用回滚，继续提交直到冲突出现就行，于是我让两边真正分叉：main 上又提交了句子 C，feature 上又提交了句子 D，再 merge 时冲突如期而至：
 
-文章介绍 Gitflow 分支管理模型：两条永久分支——`master`（与线上版本一致，只存放发布并打 tag）与 `develop`（日常开发集成分支）；三类临时分支——`feature`（新功能，从 develop 切出、完成后以 `--no-ff` 合并回 develop 并删除）、`release`（提测/发布准备，结束后合并回 master 与 develop）、`hotfix`（线上紧急修复，从 master 切出）。核心理念是"从哪里来，回到哪里去"，让不同分支各司其职，降低多人协作中的代码冲突。
+```
+Auto-merging main.c
+CONFLICT (content): Merge conflict in main.c
+Automatic merge failed; fix conflicts and then commit the result.
+```
 
-### 3. 为什么要学习 Git？
+打开 `main.c` 能看到那段著名的冲突标记：
 
-Git 是当前软件行业事实标准的版本控制工具，它解决的核心问题是"协作"与"回溯"：记录每一次修改、支持随时回到任意历史版本，避免了 `xxx_old.cpp` 式的混乱备份；分支机制让多人、多特性可以并行开发互不干扰；合并与冲突解决机制让团队能在同一份代码上协同工作。对本课程而言，后续每个实验都要通过 Git 交付，掌握它是完成课程的前提；对未来的工程实践而言，Git 是开源协作与团队开发的基础设施，也是开发者必须掌握的基本功。
+```c
+<<<<<<< HEAD
+    printf("Hello from the main branch again! Resolving Lab0 conflict.\n");
+=======
+    printf("Hello from the feature branch again! Feature keeps its sentence.\n");
+>>>>>>> feature
+```
 
-## 四、建议（可选）
+`<<<<<<<` 和 `=======` 之间是当前分支（HEAD）的版本，`=======` 和 `>>>>>>>` 之间是 feature 分支的版本——git 不知道该留哪个，就把决定权交回给人。我删掉三行标记、保留其中一句，`git add` 后提交，合并完成。`git log --graph` 里能看到一个典型的"分叉再汇合"的合并节点，挺有成就感的。
 
-- 建议实验文档补充一份"国内/海外环境 apt 软件源切换"的说明。本次实验在海外环境遇到复旦镜像（mirrors.fudan.edu.cn）DNS 解析失败的问题，切换到官方源 archive.ubuntu.com 后解决。
-- 建议文档在 Git 指令部分补充 `git switch` 与 `git checkout` 的对应关系，帮助习惯旧命令的同学平滑过渡。
+（截图 1：冲突时的 git status；截图 2：解决后干净的 main.c 和提交树）
+
+![遇到冲突](screenshots/conflict.png)
+
+![解决冲突](screenshots/resolved.png)
+
+**三、阅读两篇文章的收获**
+
+**《Commit Message 规范》（阮一峰）**：文章讲的是目前最流行的 Angular 规范，提交信息写成 `<type>(<scope>): <subject>` 的格式，type 有 `feat`、`fix`、`docs`、`refactor`、`perf`、`test`、`chore` 这些。好处是让 `git log` 扫一眼就能看出每次提交在干嘛、可以按类型过滤，还能自动生成 Change log。我的理解是，提交信息本质上是给"这次改动为什么存在"留的索引，写得规范一点，等于在给未来的自己省时间。
+
+**《Git Flow 分支控制》**：这篇文章把分支划分得很清楚：`master` 和 `develop` 两条永久分支（前者永远和线上版本一致，后者做日常集成），`feature`、`release`、`hotfix` 三类临时分支各有各的使命，原则是"从哪里来，回到哪里去"。看完再回头看自己这次实验的 feature 分支，就能体会为什么团队喜欢"一个功能一个分支"了——隔离得干净，合回来才可控。
+
+**为什么值得学 Git**：往小里说，它是个人写代码的"后悔药"和"时光机"，改坏了能回退，想对比随时 diff，不用再靠复制文件夹来备份；往大里说，它是多人协作的地基，GitHub 上几乎所有开源项目都跑在 Git 上，是这行的基本功。对我们来说更实际的是，后面每个实验都要靠它交作业，现在不学会，后面会很难受。
+
+**四、踩过的坑**
+
+1. 装编译工具时 `apt update` 报 `Could not resolve 'mirrors.fudan.edu.cn'`，查了一下是软件源里配了复旦镜像而当时网络解析不了这个域名，把源换成官方 archive.ubuntu.com 后就正常了。
+2. 第一次 merge 没冲突（原因见上文），一开始有点慌，后来发现这反而是理解"冲突只发生在分叉之后"的好机会。
+3. 一开始不知道从 Windows 怎么打开 WSL 里的文件，后来用 `\\wsl$\Ubuntu\home\longxq\ICS_Lab` 或者在 VSCode 里直接打开 WSL 目录就方便了。
+
+**五、一点总结**
+
+这次实验把"配置环境 → SSH → 建仓库 → 克隆 → 修改提交 → 分支 → 合并冲突 → 写报告 → 推送"整条链路完整走了一遍，收获最大的是暂存区的设计思想和亲手制造并解决一次冲突。以前这些名词只是听说过，现在是真正用过一遍了。希望后续实验还能多来几次这样的动手环节。
